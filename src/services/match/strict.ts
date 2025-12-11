@@ -1,4 +1,3 @@
-// services/match/strict.ts
 import { BuildSignature } from "../../utils/buildSignature";
 
 function required(name: string) {
@@ -44,10 +43,8 @@ export async function strictJoin(
   const prisma = deps?.prisma ?? (required("prisma") as any);
 
   const signature = BuildSignature(prefs);
-  // try to find waiting peer
   const peerId = await redis.atomicPopFromStrictQueue!(signature);
 
-  // helper to queue current user
   const queueCurrent = async () => {
     const score =
       (redis.getQualityScore ? await redis.getQualityScore(userId) : 0) ?? 0;
@@ -61,12 +58,9 @@ export async function strictJoin(
     return queueCurrent();
   }
 
-  // we have a candidate peerId — try to acquire locks for safety
   const token = `${userId}-${Date.now()}`;
   const lockPeer = await redis.acquireLock!(peerId, token, 2000);
   if (!lockPeer) {
-    // can't lock peer, push them back and queue current user
-    // push peer back with same score (best-effort)
     const peerState = (await redis.getUserState!(peerId)) ?? {};
     const peerScore = (await redis.getQualityScore(peerId)) ?? 0;
     await redis.addToStrictQueue!(
@@ -79,7 +73,6 @@ export async function strictJoin(
 
   const lockSelf = await redis.acquireLock!(userId, token, 2000);
   if (!lockSelf) {
-    // release peer lock and push peer back
     await redis.releaseLock!(peerId, token);
     const peerState = (await redis.getUserState!(peerId)) ?? {};
     const peerScore = (await redis.getQualityScore(peerId)) ?? 0;
@@ -92,11 +85,9 @@ export async function strictJoin(
   }
 
   try {
-    // re-check states under lock
     const peerState = (await redis.getUserState!(peerId)) ?? { prefs: {} };
     const selfState = (await redis.getUserState!(userId)) ?? { prefs };
 
-    // create session
     const session = await prisma.createSession!(
       peerId,
       userId,
@@ -105,7 +96,6 @@ export async function strictJoin(
       prefs
     );
 
-    // cleanup
     await redis.removeFromWaitingSet!("strict", peerId).catch(() => {});
     await redis.removeFromWaitingSet!("strict", userId).catch(() => {});
     await redis.removeFromStrictQueue!(signature, userId).catch(() => {});
@@ -116,7 +106,6 @@ export async function strictJoin(
 
     return { status: "matched", session };
   } finally {
-    // release locks
     await redis.releaseLock!(peerId, token).catch(() => {});
     await redis.releaseLock!(userId, token).catch(() => {});
   }

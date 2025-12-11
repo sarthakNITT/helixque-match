@@ -1,4 +1,3 @@
-// tests/run_redisMock.ts
 import * as redis from "./mocks/redisMock";
 
 async function main() {

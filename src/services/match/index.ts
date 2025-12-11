@@ -1,4 +1,3 @@
-// services/match/index.ts
 import { strictJoin } from "./strict";
 
 export async function leave(
@@ -32,7 +31,6 @@ export async function leave(
   await redis.removeFromWaitingSet!("strict", userId).catch(() => {});
   await redis.removeFromWaitingSet!("loose", userId).catch(() => {});
 
-  // clear user state
   await redis.saveUserState!(userId, null).catch(() => {});
 
   return { status: "ok" };
@@ -54,6 +52,5 @@ export async function join(
     return strictJoin(userId, prefs, deps);
   }
 
-  // loose mode will be added in later steps
   throw new Error("loose mode not implemented yet");
 }

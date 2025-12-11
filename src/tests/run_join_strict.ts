@@ -1,4 +1,3 @@
-// tests/run_join_strict.ts
 import * as redis from "./mocks/redisMock";
 import * as prisma from "./mocks/prismaMock";
 import { join } from "../services/match/index";
