@@ -12,7 +12,7 @@ export interface UserPreferences {
   country: string | string[];
 }
 
-export const BuildSignature = async (props: UserPreferences) => {
+export const BuildSignature = (props: UserPreferences) => {
   const language = Check(props.language);
   const domain = Check(props.domain);
   const techStack = Check(props.techStack);
