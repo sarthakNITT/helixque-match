@@ -49,10 +49,19 @@ export async function join(
   if (!deps?.redis) throw new Error("redis dependency required");
   if (!deps?.prisma) throw new Error("prisma dependency required");
 
+  try {
+    await leave(userId, { redis: deps.redis });
+  } catch (err) {
+    console.warn(
+      "join: leave() cleanup error (continuing):",
+      (err as any)?.message ?? err
+    );
+  }
+
   if (mode === "strict") return strictJoin(userId, prefs, deps);
   if (mode === "loose") return looseJoin(userId, prefs, deps);
 
-  throw new Error("loose mode not implemented yet");
+  throw new Error("unsupported mode");
 }
 
 export async function endSession(
