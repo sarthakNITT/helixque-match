@@ -31,9 +31,42 @@ export async function looseJoin(
   userId: string,
   prefs: any,
   deps?: Partial<Deps>
-) {
+): Promise<{ status: "queued" } | { status: "matched"; session: any }> {
   if (!deps?.redis) throw new Error("redis required");
+  if (!deps?.prisma) throw new Error("prisma required");
   const redis = deps.redis;
+  const prisma = deps.prisma;
+
+  const MATCH_THRESHOLD = 60;
+
+  const candidates = await fetchCandidatesFor(userId, prefs, {
+    redis: redis as any,
+    maxPerField: 10,
+    maxCandidates: 50,
+  });
+
+  if (candidates.length > 0) {
+    const scored = await scoreCandidates(userId, prefs, candidates, {
+      redis: redis as any,
+    });
+    if (scored.length > 0) {
+      const top = scored[0];
+      if (top.score >= MATCH_THRESHOLD) {
+        const signature = BuildSignature(prefs);
+        await redis.saveUserState(userId, { prefs, signature }).catch(() => {});
+
+        const final = await finalizeLooseMatch(userId, top.userId, prefs, {
+          redis: redis as any,
+          prisma,
+        });
+        if (final && final.status === "matched") {
+          return final;
+        }
+
+        await redis.saveUserState(userId, null).catch(() => {});
+      }
+    }
+  }
 
   const signature = BuildSignature(prefs);
   await redis.saveUserState(userId, { prefs, signature });
@@ -44,7 +77,6 @@ export async function looseJoin(
 
   for (const rawKey of Object.keys(prefs || {})) {
     const key = String(rawKey).toLowerCase();
-
     const val = prefs[rawKey];
     if (val == null) continue;
 
@@ -55,13 +87,10 @@ export async function looseJoin(
     } else if (typeof val === "object") {
       for (const sub of Object.values(val)) {
         if (sub == null) continue;
-        if (Array.isArray(sub)) {
-          for (const it of sub) {
+        if (Array.isArray(sub))
+          for (const it of sub)
             await redis.addToLooseIndex(key, String(it), userId, score);
-          }
-        } else {
-          await redis.addToLooseIndex(key, String(sub), userId, score);
-        }
+        else await redis.addToLooseIndex(key, String(sub), userId, score);
       }
     } else {
       await redis.addToLooseIndex(key, String(val), userId, score);
@@ -69,7 +98,7 @@ export async function looseJoin(
   }
 
   await redis.addToWaitingSet("loose", userId);
-  return { status: "queued" as const };
+  return { status: "queued" };
 }
 
 /**

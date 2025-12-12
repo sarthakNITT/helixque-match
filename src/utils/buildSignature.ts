@@ -12,22 +12,48 @@ export interface UserPreferences {
   country: string | string[];
 }
 
-export const BuildSignature = (props: UserPreferences) => {
-  const language = Check(props.language);
-  const domain = Check(props.domain);
-  const techStack = Check(props.techStack);
-  const experience = Check(props.experience);
-  const country = Check(props.country);
-  const key = `language:${language}|domain:${domain}|techStack:${techStack}|experience:${experience}|country:${country}`;
-  return key;
-};
+export function BuildSignature(prefs: any): string {
+  if (prefs === null || prefs === undefined) return "";
 
-function Check(v: string | string[]) {
-  if (Array.isArray(v)) {
-    return v
-      .map((x) => String(x).toLowerCase())
-      .sort((a, b) => a.localeCompare(b))
-      .join(",");
+  function normalize(value: any): string {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value.trim().toLowerCase();
+    if (typeof value === "number" || typeof value === "boolean")
+      return String(value);
+    if (Array.isArray(value)) {
+      const items = value
+        .map(normalize)
+        .filter((v) => v !== "")
+        .sort();
+      return items.join(",");
+    }
+    if (typeof value === "object") {
+      const keys = Object.keys(value)
+        .map((k) => k.toLowerCase())
+        .filter((k) => value[k] !== undefined && value[k] !== null)
+        .sort();
+      const parts = keys
+        .map((k) => `${k}=${normalize(value[k])}`)
+        .filter((p) => !p.endsWith("="));
+      return `{${parts.join("|")}}`;
+    }
+    return String(value);
   }
-  return String(v).toLowerCase();
+
+  const keys = Object.keys(prefs)
+    .map((k) => k.toLowerCase())
+    .filter((k) => prefs[k] !== undefined && prefs[k] !== null)
+    .sort();
+
+  const parts = keys
+    .map((k) => {
+      const origKey = Object.keys(prefs).find(
+        (kk) => kk.toLowerCase() === k
+      ) as string | undefined;
+      const val = normalize(origKey ? prefs[origKey] : prefs[k]);
+      return val === "" ? null : `${k}=${val}`;
+    })
+    .filter(Boolean) as string[];
+
+  return parts.join("|");
 }
