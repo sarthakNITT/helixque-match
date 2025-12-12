@@ -166,7 +166,85 @@ export async function finalizeLooseMatch(
   userId: string,
   peerId: string,
   prefs: any,
-  deps: { redis: any; prisma: any }
-) {
-  return null;
+  deps: {
+    redis: {
+      acquireLock: (
+        u: string,
+        token: string,
+        ttlMs?: number
+      ) => Promise<boolean>;
+      releaseLock: (u: string, token: string) => Promise<boolean>;
+      getUserState: (u: string) => Promise<any>;
+      removeUserFromAllLooseIndexes: (u: string, prefs?: any) => Promise<void>;
+      removeFromWaitingSet: (mode: string, u: string) => Promise<void>;
+      saveUserState: (u: string, state: any) => Promise<void>;
+    };
+    prisma: {
+      createSession: (
+        a: string,
+        b: string,
+        mode: string,
+        prefsA: any,
+        prefsB: any
+      ) => Promise<any>;
+    };
+  }
+): Promise<{ status: "matched"; session: any } | null> {
+  if (!deps?.redis) throw new Error("redis required");
+  if (!deps?.prisma) throw new Error("prisma required");
+
+  const redis = deps.redis;
+  const prisma = deps.prisma;
+
+  const token = `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const ttlMs = 3000;
+
+  const [first, second] = userId < peerId ? [userId, peerId] : [peerId, userId];
+
+  const lockedFirst = await redis.acquireLock(first, token, ttlMs);
+  if (!lockedFirst) return null;
+
+  const lockedSecond = await redis.acquireLock(second, token, ttlMs);
+  if (!lockedSecond) {
+    await redis.releaseLock(first, token).catch(() => {});
+    return null;
+  }
+
+  try {
+    const peerState = await redis.getUserState(peerId);
+    const selfState = await redis.getUserState(userId);
+
+    if (!peerState || !peerState.prefs) {
+      return null;
+    }
+    if (!selfState || !selfState.prefs) {
+      return null;
+    }
+
+    const session = await prisma.createSession(
+      peerId,
+      userId,
+      "loose",
+      peerState.prefs,
+      selfState.prefs
+    );
+
+    await redis
+      .removeUserFromAllLooseIndexes(peerId, peerState.prefs)
+      .catch(() => {});
+    await redis
+      .removeUserFromAllLooseIndexes(userId, selfState.prefs)
+      .catch(() => {});
+
+    await redis.removeFromWaitingSet("loose", peerId).catch(() => {});
+    await redis.removeFromWaitingSet("loose", userId).catch(() => {});
+
+    await redis.saveUserState(peerId, null).catch(() => {});
+    await redis.saveUserState(userId, null).catch(() => {});
+
+    return { status: "matched", session };
+  } finally {
+    await redis.releaseLock(first, token).catch(() => {});
+    await redis.releaseLock(second, token).catch(() => {});
+  }
 }
