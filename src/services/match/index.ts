@@ -54,3 +54,13 @@ export async function join(
 
   throw new Error("loose mode not implemented yet");
 }
+
+export async function endSession(
+  sessionId: string,
+  deps?: { prisma?: { endSession?: (id: string) => Promise<any> } }
+) {
+  const prisma = deps?.prisma;
+  if (!prisma || !prisma.endSession)
+    throw new Error("prisma.endSession dependency required");
+  return prisma.endSession(sessionId);
+}
