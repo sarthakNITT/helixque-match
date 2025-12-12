@@ -1,4 +1,5 @@
 import { strictJoin } from "./strict";
+import { looseJoin } from "./loose";
 
 export async function leave(
   userId: string,
@@ -48,9 +49,8 @@ export async function join(
   if (!deps?.redis) throw new Error("redis dependency required");
   if (!deps?.prisma) throw new Error("prisma dependency required");
 
-  if (mode === "strict") {
-    return strictJoin(userId, prefs, deps);
-  }
+  if (mode === "strict") return strictJoin(userId, prefs, deps);
+  if (mode === "loose") return looseJoin(userId, prefs, deps);
 
   throw new Error("loose mode not implemented yet");
 }
