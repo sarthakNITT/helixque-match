@@ -1,6 +1,6 @@
 # Helixque Match API
 
-Helixque Match is a Fastify-based TypeScript service that exposes APIs for managing user preferences and related matchmaking features. The project is designed with modular components for configuration, routing, validation, and documentation to keep the codebase scalable and easy to extend.
+Helixque Match is a Fastify based TypeScript service that exposes APIs for managing user preferences and related matchmaking features. The project is designed with modular components for configuration, routing, validation, and documentation to keep the codebase scalable and easy to extend.
 
 ## Table of Contents
 

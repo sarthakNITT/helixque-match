@@ -26,3 +26,6 @@ tsconfig.tsbuildinfo
 
 # Coverage
 coverage/
+
+# Vercel
+.vercel
