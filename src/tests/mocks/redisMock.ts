@@ -1,4 +1,4 @@
-type UserState = unknown;
+type UserState = any;
 
 const userState = new Map<string, UserState>();
 
@@ -16,6 +16,42 @@ const waitingSets = new Map<string, Set<string>>();
 
 const locks = new Map<string, { token: string; expiresAt: number }>();
 
+/** Simple async mutex */
+class Mutex {
+  private _locked = false;
+  private _waiters: Array<() => void> = [];
+
+  async lock(): Promise<() => void> {
+    if (!this._locked) {
+      this._locked = true;
+      return () => this.unlock();
+    }
+    return new Promise<() => void>((resolve) => {
+      this._waiters.push(() => {
+        this._locked = true;
+        resolve(() => this.unlock());
+      });
+    });
+  }
+
+  private unlock() {
+    this._locked = false;
+    const next = this._waiters.shift();
+    if (next) next();
+  }
+}
+
+const strictMutexes = new Map<string, Mutex>();
+
+function getStrictMutex(sig: string) {
+  let m = strictMutexes.get(sig);
+  if (!m) {
+    m = new Mutex();
+    strictMutexes.set(sig, m);
+  }
+  return m;
+}
+
 export async function getUserState(userId: string): Promise<UserState | null> {
   return userState.get(userId) ?? null;
 }
@@ -24,7 +60,8 @@ export async function saveUserState(
   userId: string,
   stateObj: UserState
 ): Promise<void> {
-  userState.set(userId, stateObj);
+  if (stateObj === null) userState.delete(userId);
+  else userState.set(userId, stateObj);
 }
 
 export async function addToStrictQueue(
@@ -32,25 +69,34 @@ export async function addToStrictQueue(
   userId: string,
   score = 0
 ): Promise<void> {
-  const now = Date.now();
-  const arr = strictQueues.get(signature) ?? [];
-  arr.push({ userId, score, addedAt: now });
-  strictQueues.set(signature, arr);
+  const release = await getStrictMutex(signature).lock();
+  try {
+    const now = Date.now();
+    const arr = strictQueues.get(signature) ?? [];
+    arr.push({ userId, score, addedAt: now });
+    strictQueues.set(signature, arr);
+  } finally {
+    release();
+  }
 }
 
 export async function atomicPopFromStrictQueue(
   signature: string
 ): Promise<string | null> {
-  const arr = strictQueues.get(signature);
-  if (!arr || arr.length === 0) return null;
-
-  arr.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.addedAt - b.addedAt;
-  });
-  const item = arr.shift()!;
-  strictQueues.set(signature, arr);
-  return item.userId;
+  const release = await getStrictMutex(signature).lock();
+  try {
+    const arr = strictQueues.get(signature);
+    if (!arr || arr.length === 0) return null;
+    arr.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.addedAt - b.addedAt;
+    });
+    const item = arr.shift()!;
+    strictQueues.set(signature, arr);
+    return item.userId;
+  } finally {
+    release();
+  }
 }
 
 export async function removeFromStrictQueue(
@@ -85,7 +131,6 @@ export async function fetchTopNFromIndex(
 ): Promise<string[]> {
   const key = `${field.toLowerCase()}:${String(value).toLowerCase()}`;
   const arr = looseIndexes.get(key) ?? [];
-
   arr.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.addedAt - b.addedAt;
@@ -94,7 +139,8 @@ export async function fetchTopNFromIndex(
 }
 
 export async function removeUserFromAllLooseIndexes(
-  userId: string
+  userId: string,
+  _prefs?: any
 ): Promise<void> {
   for (const [k, arr] of looseIndexes.entries()) {
     const filtered = arr.filter((x) => x.userId !== userId);
@@ -143,7 +189,7 @@ export async function releaseLock(
   return true;
 }
 
-export async function getQualityScore(_userId: string): Promise<number> {
+export async function getQualityScore(userId: string): Promise<number> {
   return 100;
 }
 
@@ -153,4 +199,5 @@ export const __internal = {
   waitingSets,
   userState,
   locks,
+  strictMutexes,
 };

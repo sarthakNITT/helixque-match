@@ -66,10 +66,21 @@ export async function join(
 
 export async function endSession(
   sessionId: string,
-  deps?: { prisma?: { endSession?: (id: string) => Promise<any> } }
+  deps?: { prisma?: any; redis?: any }
 ) {
-  const prisma = deps?.prisma;
-  if (!prisma || !prisma.endSession)
-    throw new Error("prisma.endSession dependency required");
-  return prisma.endSession(sessionId);
+  if (!deps?.prisma) throw new Error("prisma required");
+  if (!deps?.redis) throw new Error("redis required");
+
+  const res = await deps.prisma.endSession(sessionId);
+
+  for (const [userId, state] of deps.redis.__internal.userState.entries()) {
+    if (state?.sessionId === sessionId) {
+      await deps.redis.saveUserState(userId, {
+        ...state,
+        sessionId: null,
+      });
+    }
+  }
+
+  return res;
 }

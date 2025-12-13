@@ -1,4 +1,5 @@
 import { BuildSignature } from "../../utils/buildSignature";
+import { log } from "../../utils/logger";
 
 function required(name: string) {
   throw new Error(`${name} dependency required (pass via deps)`);
@@ -39,6 +40,9 @@ export async function strictJoin(
     };
   }
 ): Promise<{ status: "queued" } | { status: "matched"; session: any }> {
+  const start = Date.now();
+  log("strict_join_attempt", { userId });
+
   const redis = deps?.redis ?? (required("redis") as any);
   const prisma = deps?.prisma ?? (required("prisma") as any);
 
@@ -48,9 +52,15 @@ export async function strictJoin(
   const queueCurrent = async () => {
     const score =
       (redis.getQualityScore ? await redis.getQualityScore(userId) : 0) ?? 0;
-    await redis.saveUserState!(userId, { prefs, signature });
+    await redis.saveUserState(userId, {
+      prefs,
+      signature,
+      joinedAt: Date.now(),
+      mode: "strict",
+    });
     await redis.addToStrictQueue!(signature, userId, score);
     await redis.addToWaitingSet!("strict", userId);
+    log("strict_queued", { userId });
     return { status: "queued" as const };
   };
 
@@ -88,6 +98,10 @@ export async function strictJoin(
     const peerState = (await redis.getUserState!(peerId)) ?? { prefs: {} };
     const selfState = (await redis.getUserState!(userId)) ?? { prefs };
 
+    if (peerState?.sessionId || selfState?.sessionId) {
+      return queueCurrent();
+    }
+
     const session = await prisma.createSession!(
       peerId,
       userId,
@@ -95,6 +109,16 @@ export async function strictJoin(
       peerState.prefs ?? {},
       prefs
     );
+
+    await redis.saveUserState!(peerId, {
+      ...peerState,
+      sessionId: session.id,
+    });
+
+    await redis.saveUserState!(userId, {
+      ...selfState,
+      sessionId: session.id,
+    });
 
     await redis.removeFromWaitingSet!("strict", peerId).catch(() => {});
     await redis.removeFromWaitingSet!("strict", userId).catch(() => {});
@@ -104,6 +128,11 @@ export async function strictJoin(
       peerId
     ).catch(() => {});
 
+    log("strict_matched", {
+      userId,
+      peerId,
+      latencyMs: Date.now() - start,
+    });
     return { status: "matched", session };
   } finally {
     await redis.releaseLock!(peerId, token).catch(() => {});

@@ -1,5 +1,6 @@
 import { BuildSignature } from "../../utils/buildSignature";
 import { computeSimilarity, computeMatchScore } from "../../utils/score";
+import { log } from "../../utils/logger";
 
 type Deps = {
   redis: {
@@ -32,6 +33,9 @@ export async function looseJoin(
   prefs: any,
   deps?: Partial<Deps>
 ): Promise<{ status: "queued" } | { status: "matched"; session: any }> {
+  const start = Date.now();
+  log("loose_join_attempt", { userId });
+
   if (!deps?.redis) throw new Error("redis required");
   if (!deps?.prisma) throw new Error("prisma required");
   const redis = deps.redis;
@@ -60,6 +64,11 @@ export async function looseJoin(
           prisma,
         });
         if (final && final.status === "matched") {
+          log("loose_matched", {
+            userId,
+            peerId: top.userId,
+            latencyMs: Date.now() - start,
+          });
           return final;
         }
 
@@ -98,6 +107,7 @@ export async function looseJoin(
   }
 
   await redis.addToWaitingSet("loose", userId);
+  log("loose_queued", { userId });
   return { status: "queued" };
 }
 
@@ -243,6 +253,10 @@ export async function finalizeLooseMatch(
     const peerState = await redis.getUserState(peerId);
     const selfState = await redis.getUserState(userId);
 
+    if (peerState?.sessionId || selfState?.sessionId) {
+      return null;
+    }
+
     if (!peerState || !peerState.prefs) {
       return null;
     }
@@ -257,6 +271,16 @@ export async function finalizeLooseMatch(
       peerState.prefs,
       selfState.prefs
     );
+
+    await redis.saveUserState(peerId, {
+      ...peerState,
+      sessionId: session.id,
+    });
+
+    await redis.saveUserState(userId, {
+      ...selfState,
+      sessionId: session.id,
+    });
 
     await redis
       .removeUserFromAllLooseIndexes(peerId, peerState.prefs)
