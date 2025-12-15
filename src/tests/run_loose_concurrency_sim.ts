@@ -9,7 +9,7 @@ async function main() {
   const userIds = ["U1", "U2", "U3", "U4", "U5", "U6"];
 
   for (const id of userIds) {
-    const res = await join(id, "loose", prefs, { redis, prisma });
+    const res = await join(id, "loose", prefs, { redis });
     console.log(`${id} join returned:`, res.status);
   }
 

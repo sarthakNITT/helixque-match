@@ -5,7 +5,7 @@ import { join } from "../services/match/index";
 async function main() {
   const prefs = { language: ["en"], region: "us" };
 
-  const r = await join("X", "loose", prefs, { redis, prisma });
+  const r = await join("X", "loose", prefs, { redis });
   console.log("loose join result (expect queued):", r);
 
   const state = await redis.getUserState("X");

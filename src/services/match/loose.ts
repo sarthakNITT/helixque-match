@@ -1,6 +1,8 @@
 import { BuildSignature } from "../../utils/buildSignature";
 import { computeSimilarity, computeMatchScore } from "../../utils/score";
 import { log } from "../../utils/logger";
+import { createMatch } from "../../clients/userDataClient";
+import { updateUserStatus } from "../../clients/userStatusClient";
 
 type Deps = {
   redis: {
@@ -19,7 +21,6 @@ type Deps = {
     ) => Promise<string[]>;
     getQualityScore?: (u: string) => Promise<number>;
   };
-  prisma?: any;
 };
 
 /**
@@ -37,9 +38,7 @@ export async function looseJoin(
   log("loose_join_attempt", { userId });
 
   if (!deps?.redis) throw new Error("redis required");
-  if (!deps?.prisma) throw new Error("prisma required");
   const redis = deps.redis;
-  const prisma = deps.prisma;
 
   const MATCH_THRESHOLD = 60;
 
@@ -61,7 +60,6 @@ export async function looseJoin(
 
         const final = await finalizeLooseMatch(userId, top.userId, prefs, {
           redis: redis as any,
-          prisma,
         });
         if (final && final.status === "matched") {
           log("loose_matched", {
@@ -107,6 +105,7 @@ export async function looseJoin(
   }
 
   await redis.addToWaitingSet("loose", userId);
+  await updateUserStatus(userId, "WAITING_LOOSE");
   log("loose_queued", { userId });
   return { status: "queued" };
 }
@@ -218,22 +217,11 @@ export async function finalizeLooseMatch(
       removeFromWaitingSet: (mode: string, u: string) => Promise<void>;
       saveUserState: (u: string, state: any) => Promise<void>;
     };
-    prisma: {
-      createSession: (
-        a: string,
-        b: string,
-        mode: string,
-        prefsA: any,
-        prefsB: any
-      ) => Promise<any>;
-    };
   }
 ): Promise<{ status: "matched"; session: any } | null> {
   if (!deps?.redis) throw new Error("redis required");
-  if (!deps?.prisma) throw new Error("prisma required");
 
   const redis = deps.redis;
-  const prisma = deps.prisma;
 
   const token = `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const ttlMs = 3000;
@@ -264,13 +252,13 @@ export async function finalizeLooseMatch(
       return null;
     }
 
-    const session = await prisma.createSession(
-      peerId,
-      userId,
-      "loose",
-      peerState.prefs,
-      selfState.prefs
-    );
+    const session = await createMatch({
+      userAId: peerId,
+      userBId: userId,
+      mode: "LOOSE",
+    });
+    await updateUserStatus(userId, "IN_CALL");
+    await updateUserStatus(peerId, "IN_CALL");
 
     await redis.saveUserState(peerId, {
       ...peerState,

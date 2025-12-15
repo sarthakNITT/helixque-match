@@ -1,5 +1,6 @@
 import { strictJoin } from "./strict";
 import { looseJoin } from "./loose";
+import { endMatch } from "../../clients/userDataClient";
 
 export async function leave(
   userId: string,
@@ -43,11 +44,9 @@ export async function join(
   prefs: any,
   deps?: {
     redis?: any;
-    prisma?: any;
   }
 ): Promise<{ status: string; session?: any }> {
   if (!deps?.redis) throw new Error("redis dependency required");
-  if (!deps?.prisma) throw new Error("prisma dependency required");
 
   try {
     await leave(userId, { redis: deps.redis });
@@ -64,14 +63,10 @@ export async function join(
   throw new Error("unsupported mode");
 }
 
-export async function endSession(
-  sessionId: string,
-  deps?: { prisma?: any; redis?: any }
-) {
-  if (!deps?.prisma) throw new Error("prisma required");
+export async function endSession(sessionId: string, deps?: { redis?: any }) {
   if (!deps?.redis) throw new Error("redis required");
 
-  const res = await deps.prisma.endSession(sessionId);
+  const res = await endMatch(sessionId);
 
   for (const [userId, state] of deps.redis.__internal.userState.entries()) {
     if (state?.sessionId === sessionId) {

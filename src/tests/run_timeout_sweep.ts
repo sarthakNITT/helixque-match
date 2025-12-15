@@ -7,7 +7,7 @@ import { sweepStaleWaiters } from "../services/match/sweeper";
 async function main() {
   const prefs = { language: ["en"], region: "us" };
 
-  await join("T1", "strict", prefs, { redis, prisma });
+  await join("T1", "strict", prefs, { redis });
   console.log("joined T1");
 
   // simulate time passing

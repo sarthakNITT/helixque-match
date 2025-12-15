@@ -11,11 +11,11 @@ async function main() {
   await looseJoin(
     "A",
     { interests: ["music"], region: "us", ageRange: [25, 35] },
-    { redis, prisma }
+    { redis }
   );
 
   const prefsX = { interests: ["music"], region: "us", ageRange: [28, 32] };
-  const res = await join("X", "loose", prefsX, { redis, prisma });
+  const res = await join("X", "loose", prefsX, { redis });
   console.log("join result (expect matched):", res.status);
 
   if (res.status === "matched") {

@@ -3,16 +3,12 @@ import * as prisma from "./mocks/prismaMock";
 import { looseJoin, finalizeLooseMatch } from "../services/match/loose";
 
 async function main() {
-  await looseJoin(
-    "A",
-    { interests: ["music"], region: "us" },
-    { redis, prisma }
-  );
+  await looseJoin("A", { interests: ["music"], region: "us" }, { redis });
 
   const prefsX = { interests: ["music"], region: "us" };
-  await looseJoin("X", prefsX, { redis, prisma });
+  await looseJoin("X", prefsX, { redis });
 
-  const res = await finalizeLooseMatch("X", "A", prefsX, { redis, prisma });
+  const res = await finalizeLooseMatch("X", "A", prefsX, { redis });
   console.log("finalize result (expect matched):", res?.status ?? null);
   if (res?.status === "matched") {
     console.log("session:", res.session);

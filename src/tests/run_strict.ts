@@ -6,10 +6,10 @@ async function main() {
   const prefsA = { language: ["en"], region: "US" };
   const prefsB = { region: "US", language: ["EN"] };
 
-  const res1 = await strictJoin("user1", prefsA, { redis, prisma });
+  const res1 = await strictJoin("user1", prefsA, { redis });
   console.log("user1 result (expect queued):", res1);
 
-  const res2 = await strictJoin("user2", prefsB, { redis, prisma });
+  const res2 = await strictJoin("user2", prefsB, { redis });
   console.log(
     "user2 result (expect matched):",
     res2.status === "matched" ? "matched" : res2
