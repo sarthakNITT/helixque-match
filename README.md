@@ -1,136 +1,99 @@
-# Helixque Match API
+# Helixque Match
 
-Helixque Match is a Fastify-based TypeScript service that exposes APIs for managing user preferences and related matchmaking features. The project is designed with modular components for configuration, routing, validation, and documentation to keep the codebase scalable and easy to extend.
+**Helixque Match** is a backend service designed to handle user matching logic based on preferences. It provides APIs for managing user preferences and executing matching algorithms to find compatible users.
 
-## Table of Contents
+## 🚀 Key Features
 
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Available Scripts](#available-scripts)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [Key Modules](#key-modules)
-- [API Surface](#api-surface)
-- [Logging](#logging)
-- [Swagger Documentation](#swagger-documentation)
-- [Development Notes](#development-notes)
+*   **Preference Management**: Create and list user preferences including domain, tech stacks, languages, and experience levels.
+*   **Matching Algorithms**:
+    *   **Strict Matching**: Finds users with exact matches on critical criteria.
+    *   **Loose Matching**: Finds users with partial matches or broader criteria.
+*   **Health Checks**: Built-in health check endpoint for monitoring service status.
+*   **Swagger Documentation**: Integrated Swagger UI for interactive API documentation.
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Runtime:** Node.js + TypeScript
-- **Framework:** Fastify 5
-- **Validation:** Zod
-- **Configuration:** dotenv
-- **Observability:** Pino (with pretty logging in development)
-- **Tooling:** pnpm, ts-node-dev, TypeScript compiler
+*   **Framework**: [Fastify](https://www.fastify.io/) - Fast and low overhead web framework for Node.js.
+*   **Language**: [TypeScript](https://www.typescriptlang.org/) - Typed superset of JavaScript.
+*   **Validation**: [Zod](https://zod.dev/) - TypeScript-first schema declaration and validation.
+*   **Logging**: [Pino](https://github.com/pinojs/pino) - Very low overhead Node.js logger.
+*   **Documentation**: [Swagger / OpenAPI](https://swagger.io/) - API description and documentation.
 
-## Quick Start
+## 📂 Project Structure
 
-1. **Install dependencies** (pnpm is recommended):
-   ```bash
-   pnpm install
-   ```
-2. **Create a `.env` file** at the project root (see [Environment Variables](#environment-variables)).
-3. **Run the development server**:
-   ```bash
-   pnpm dev
-   ```
-4. The API boots on `http://localhost:<PORT>` (defaults to `4000` via `.env`). Swagger UI is available at `/docs` once the server is running.
-
-## Available Scripts
-
-- `pnpm dev`: Start the Fastify server with live reload via `ts-node-dev`.
-- `pnpm build`: Compile TypeScript sources to the `dist/` folder.
-- `pnpm start`: Run the compiled JavaScript from `dist/`.
-
-## Environment Variables
-
-Configuration is loaded through `dotenv` and validated with Zod. Add a `.env` file with the following keys:
-
-```dotenv
-NODE_ENV=development
-PORT=3000
-LOG_LEVEL=info
+```text
+src/
+├── clients/       # Clients for external services (User Data, User Status)
+├── config/        # Environment and app configuration
+├── controllers/   # Route handlers and business logic orchestration
+├── plugins/       # Fastify plugins (Cors, Swagger)
+├── routes/        # API route definitions
+├── schemas/       # Zod schemas for validation and types
+├── services/      # Business logic (Matching algorithms)
+├── utils/         # Utility functions
+├── server.ts      # Server entry point
+└── app.ts         # App factory
 ```
 
-Missing values fall back to the defaults defined in `src/config/env.ts`.
+## 🏁 Getting Started
 
-## Project Structure
+### Prerequisites
 
-```
-helixque-match/
-├── package.json
-├── pnpm-lock.yaml
-├── tsconfig.json
-├── src/
-│   ├── app.ts
-│   ├── server.ts
-│   ├── config/
-│   │   └── env.ts
-│   ├── controllers/
-│   │   └── preferences.controller.ts
-│   ├── plugins/
-│   │   ├── cors.ts
-│   │   └── swagger.ts
-│   ├── routes/
-│   │   ├── health.ts
-│   │   ├── index.ts
-│   │   └── preferences.ts
-│   ├── schemas/
-│   │   └── preferences.schema.ts
-│   └── utils/
-│       ├── logger.ts
-│       └── response.ts (placeholder for shared response helpers)
-└── dist/ (generated at build time)
-```
+*   **Node.js** (v18 or higher recommended)
+*   **pnpm** (or npm/yarn)
 
-## Key Modules
+### Installation
 
-- **`src/server.ts`**: Entrypoint that builds the Fastify instance and starts listening. Safe to import in tests without auto-starting.
-- **`src/app.ts`**: Factory responsible for registering global plugins and routes. Returns the configured Fastify instance.
-- **`src/config/env.ts`**: Loads `.env` variables and validates them with Zod to ensure reliable defaults across environments.
-- **`src/plugins/cors.ts`**: Fastify plugin that enables CORS with credentials; wrapped with `fastify-plugin` for encapsulation control.
-- **`src/plugins/swagger.ts`**: Registers OpenAPI metadata and serves Swagger UI at `/docs`.
-- **`src/routes/health.ts`**: Lightweight liveness route responding at `GET /health`.
-- **`src/routes/index.ts`**: Central place to mount versioned API routes. Currently exposes `/api/v1/preferences`.
-- **`src/routes/preferences.ts`**: Declares REST endpoints for preferences (`GET /`, `POST /`).
-- **`src/controllers/preferences.controller.ts`**: Business logic handlers for preferences. Validates incoming payloads and returns typed responses.
-- **`src/schemas/preferences.schema.ts`**: Defines the Zod schema that guards the preferences contract.
-- **`src/utils/logger.ts`**: Configures Pino logger according to environment (pretty output in development, JSON in production).
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd helixque-match
+    ```
 
-## API Surface
+2.  Install dependencies:
+    ```bash
+    pnpm install
+    ```
 
-Current endpoints (prefixed with `http://localhost:<PORT>`):
+3.  Configure environment variables:
+    Copy the example environment file and update it with your local settings.
+    ```bash
+    cp .env.example .env
+    ```
+    *Ensure `PORT` and other variables are set correctly in `.env`.*
 
-| Method | Path                  | Description                                                               |
-| ------ | --------------------- | ------------------------------------------------------------------------- |
-| GET    | `/health`             | Health check for service monitoring                                       |
-| GET    | `/api/v1/preferences` | Fetch the list of stored preferences (returns an empty array placeholder) |
-| POST   | `/api/v1/preferences` | Create a new preference; body validated by `PreferenceSchema`             |
+### Running the Application
 
-Sample request body for `POST /api/v1/preferences`:
+*   **Development Mode**:
+    Starts the server with hot-reloading.
+    ```bash
+    npm run dev
+    ```
 
-```json
-{
-  "domain": "backend",
-  "techStacks": ["node", "postgres"],
-  "languages": ["typescript"],
-  "experience": "mid"
-}
-```
+*   **Production Build**:
+    Builds the TypeScript code to JavaScript.
+    ```bash
+    npm run build
+    ```
 
-## Logging
+*   **Start Production Server**:
+    Runs the built application.
+    ```bash
+    npm start
+    ```
 
-Pino powers structured logging. The log level is controlled via `LOG_LEVEL`. In non-production environments, logs are prettified with timestamps and colors for human readability.
+## 📜 Scripts
 
-## Swagger Documentation
+*   `npm run dev`: Start development server with `ts-node-dev`.
+*   `npm run build`: Compile TypeScript to `dist/`.
+*   `npm start`: Run the compiled app from `dist/server.js`.
+*   `npm run lint`: Run ESLint.
+*   `npm run lint:fix`: Run ESLint and fix issues.
+*   `npm run format`: Format code with Prettier.
+*   `npm run typecheck`: Run TypeScript type checking.
 
-- Swagger specification served at runtime under `/docs/json`.
-- Interactive documentation accessible via `http://localhost:<PORT>/docs` after the server starts.
+## 📚 API Documentation
 
-## Development Notes
+Once the server is running (default: `http://localhost:3000`), you can access the interactive API documentation at:
 
-- `dist/` is generated only after running `pnpm build` and should be excluded from source control.
-- Add new route modules under `src/routes/` and register them in `src/routes/index.ts` to keep API versioning consistent.
-- Place shared domain logic in `src/controllers/` and keep request validation in `src/schemas/` to maintain separation of concerns.
-- Extend reusable utilities (error handling, response shaping) inside `src/utils/` as the project grows.
+👉 **[http://localhost:3000/docs](http://localhost:3000/docs)**
