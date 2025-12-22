@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { buildApp } from "../../app";
+import { buildApp } from "../app";
 
 export const buildTestApp = async (): Promise<FastifyInstance> => {
   const app = buildApp();
@@ -10,3 +10,4 @@ export const buildTestApp = async (): Promise<FastifyInstance> => {
 export const closeTestApp = async (app: FastifyInstance): Promise<void> => {
   await app.close();
 };
+

@@ -262,3 +262,4 @@ describe("Preferences Controller", () => {
     });
   });
 });
+
