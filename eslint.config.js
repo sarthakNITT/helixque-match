@@ -15,6 +15,7 @@ module.exports = tseslint.config(
       // Add your custom rules here
       "@typescript-eslint/no-unused-vars": "warn",
       "no-console": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   }
 );
