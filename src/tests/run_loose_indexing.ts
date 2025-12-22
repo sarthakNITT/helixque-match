@@ -6,18 +6,10 @@ async function main() {
   await looseJoin(
     "A",
     { interests: ["music", "sports"], region: "us" },
-    { redis, prisma }
+    { redis }
   );
-  await looseJoin(
-    "B",
-    { interests: ["music"], region: "us" },
-    { redis, prisma }
-  );
-  await looseJoin(
-    "C",
-    { interests: ["cooking"], region: "in" },
-    { redis, prisma }
-  );
+  await looseJoin("B", { interests: ["music"], region: "us" }, { redis });
+  await looseJoin("C", { interests: ["cooking"], region: "in" }, { redis });
 
   const candidates = await fetchCandidatesFor(
     "X",

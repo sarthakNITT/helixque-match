@@ -10,17 +10,17 @@ async function main() {
   await looseJoin(
     "A",
     { interests: ["music", "sports"], region: "us", ageRange: [25, 35] },
-    { redis, prisma }
+    { redis }
   );
   await looseJoin(
     "B",
     { interests: ["music"], region: "us", ageRange: [30, 40] },
-    { redis, prisma }
+    { redis }
   );
   await looseJoin(
     "C",
     { interests: ["cooking"], region: "in", ageRange: [20, 25] },
-    { redis, prisma }
+    { redis }
   );
 
   const candidates = await fetchCandidatesFor(

@@ -1,5 +1,7 @@
+import { createMatch } from "../../clients/userDataClient";
 import { BuildSignature } from "../../utils/buildSignature";
 import { log } from "../../utils/logger";
+import { updateUserStatus } from "../../clients/userStatusClient";
 
 function required(name: string) {
   throw new Error(`${name} dependency required (pass via deps)`);
@@ -29,22 +31,12 @@ export async function strictJoin(
       releaseLock?: (u: string, token: string) => Promise<boolean>;
       getQualityScore?: (u: string) => Promise<number>;
     };
-    prisma?: {
-      createSession?: (
-        a: string,
-        b: string,
-        mode: string,
-        prefsA: any,
-        prefsB: any
-      ) => Promise<any>;
-    };
   }
 ): Promise<{ status: "queued" } | { status: "matched"; session: any }> {
   const start = Date.now();
   log("strict_join_attempt", { userId });
 
   const redis = deps?.redis ?? (required("redis") as any);
-  const prisma = deps?.prisma ?? (required("prisma") as any);
 
   const signature = BuildSignature(prefs);
   const peerId = await redis.atomicPopFromStrictQueue!(signature);
@@ -60,6 +52,7 @@ export async function strictJoin(
     });
     await redis.addToStrictQueue!(signature, userId, score);
     await redis.addToWaitingSet!("strict", userId);
+    await updateUserStatus(userId, "WAITING_STRICT", signature);
     log("strict_queued", { userId });
     return { status: "queued" as const };
   };
@@ -102,13 +95,14 @@ export async function strictJoin(
       return queueCurrent();
     }
 
-    const session = await prisma.createSession!(
-      peerId,
-      userId,
-      "strict",
-      peerState.prefs ?? {},
-      prefs
-    );
+    const session = await createMatch({
+      userAId: peerId,
+      userBId: userId,
+      mode: "STRICT",
+      prefKey: signature,
+    });
+    await updateUserStatus(userId, "IN_CALL");
+    await updateUserStatus(peerId, "IN_CALL");
 
     await redis.saveUserState!(peerId, {
       ...peerState,

@@ -9,10 +9,10 @@ async function main() {
   redis.__internal.userState.clear();
 
   const prefs = { language: ["en"], region: "us" };
-  const r1 = await join("Z", "strict", prefs, { redis, prisma });
+  const r1 = await join("Z", "strict", prefs, { redis });
   console.log("first join:", r1);
 
-  const r2 = await join("Z", "strict", prefs, { redis, prisma });
+  const r2 = await join("Z", "strict", prefs, { redis });
   console.log("second join:", r2);
 
   const sigs = Array.from(redis.__internal.strictQueues.keys());
