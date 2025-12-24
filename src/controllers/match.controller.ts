@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { JoinMatchSchema, LeaveMatchSchema } from "../schemas/match.schema";
 import { join, leave } from "../services/match";
-import * as redisMock from "../tests/mocks/redisMock";
+import * as redisMock from "../integrationTests/mocks/redisMock";
 
 type JoinMatchPayload = z.infer<typeof JoinMatchSchema>;
 type LeaveMatchPayload = z.infer<typeof LeaveMatchSchema>;

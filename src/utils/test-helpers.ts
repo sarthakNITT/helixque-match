@@ -10,4 +10,3 @@ export const buildTestApp = async (): Promise<FastifyInstance> => {
 export const closeTestApp = async (app: FastifyInstance): Promise<void> => {
   await app.close();
 };
-
