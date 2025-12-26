@@ -49,16 +49,16 @@ const preferencesRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         description: "Create new user preference (legacy format)",
         tags: ["Legacy"],
-        body: {
-          type: "object",
-          properties: {
-            domain: { type: "string" },
-            techStacks: { type: "array", items: { type: "string" } },
-            languages: { type: "array", items: { type: "string" } },
-            experience: { type: "string" },
-          },
-          required: ["domain", "experience"],
-        },
+        // body: {
+        //   type: "object",
+        //   properties: {
+        //     domain: { type: "string" },
+        //     techStacks: { type: "array", items: { type: "string" } },
+        //     languages: { type: "array", items: { type: "string" } },
+        //     experience: { type: "string" },
+        //   },
+        //   required: ["domain", "experience"],
+        // },
         response: {
           201: {
             type: "object",
@@ -237,33 +237,33 @@ const preferencesRoutes: FastifyPluginAsync = async (app) => {
         description:
           "Create enhanced user preference with all 10 profile fields for matching system",
         tags: ["Legacy"],
-        body: {
-          type: "object",
-          properties: {
-            language: { type: "string" },
-            techStack: { type: "array", items: { type: "string" } },
-            domain: { type: "string" },
-            region: { type: "string" },
-            experience: { type: "string" },
-            availability: { type: "string" },
-            timezone: { type: "string" },
-            projectType: { type: "string" },
-            communicationStyle: { type: "string" },
-            goals: { type: "array", items: { type: "string" } },
-          },
-          required: [
-            "language",
-            "techStack",
-            "domain",
-            "region",
-            "experience",
-            "availability",
-            "timezone",
-            "projectType",
-            "communicationStyle",
-            "goals",
-          ],
-        },
+        // body: {
+        //   type: "object",
+        //   properties: {
+        //     language: { type: "string" },
+        //     techStack: { type: "array", items: { type: "string" } },
+        //     domain: { type: "string" },
+        //     region: { type: "string" },
+        //     experience: { type: "string" },
+        //     availability: { type: "string" },
+        //     timezone: { type: "string" },
+        //     projectType: { type: "string" },
+        //     communicationStyle: { type: "string" },
+        //     goals: { type: "array", items: { type: "string" } },
+        //   },
+        //   required: [
+        //     "language",
+        //     "techStack",
+        //     "domain",
+        //     "region",
+        //     "experience",
+        //     "availability",
+        //     "timezone",
+        //     "projectType",
+        //     "communicationStyle",
+        //     "goals",
+        //   ],
+        // },
         response: {
           201: {
             type: "object",

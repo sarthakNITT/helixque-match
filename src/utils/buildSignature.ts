@@ -41,8 +41,8 @@ export function BuildSignature(prefs: any): string {
   }
 
   const keys = Object.keys(prefs)
-    .map((k) => k.toLowerCase())
     .filter((k) => prefs[k] !== undefined && prefs[k] !== null)
+    .map((k) => k.toLowerCase())
     .sort();
 
   const parts = keys
