@@ -9,4 +9,19 @@ export const JoinMatchSchema = z.object({
 
 export const LeaveMatchSchema = z.object({
   userId: z.string(),
+  mode: z.enum(["strict", "loose"]).optional(),
+});
+
+export const FeedbackSchema = z.object({
+  matchId: z.string(),
+  fromUserId: z.string(),
+  toUserId: z.string(),
+  rating: z.number().min(1).max(5),
+  tags: z.array(z.string()).optional(),
+});
+
+export const MarkMatchEndSchema = z.object({
+  matchId: z.string(),
+  userId: z.string(),
+  reason: z.string(),
 });

@@ -79,3 +79,30 @@ export async function endSession(sessionId: string, deps?: { redis?: any }) {
 
   return res;
 }
+
+export async function markMatchEnd(
+  matchId: string,
+  userId: string,
+  reason: string,
+  deps?: { redis?: any }
+): Promise<{ success: boolean }> {
+  const redis = deps?.redis;
+  if (!redis) throw new Error("redis required");
+
+  // Validate match existence for user
+  const state = await redis.getUserState(userId);
+  if (!state || state.sessionId !== matchId) {
+    throw new Error("Match not found");
+  }
+
+  await endSession(matchId, deps);
+  return { success: true };
+}
+
+export async function submitFeedback(
+  payload: any,
+  deps?: { redis?: any }
+): Promise<{ success: true; message: string }> {
+  // Simulate feedback submission
+  return { success: true, message: "Feedback submitted successfully" };
+}

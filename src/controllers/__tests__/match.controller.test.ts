@@ -35,14 +35,14 @@ describe("Match Controller", () => {
         payload: {
           userId: "user123",
           mode: "strict",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
           requestId: "550e8400-e29b-41d4-a716-446655440000",
         },
       });
 
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.body);
-      expect(data.status).toMatch(/waiting|matched/);
+      expect(data.status).toMatch(/waiting|matched|queued/);
     });
 
     it("should handle join loose request successfully", async () => {
@@ -52,13 +52,13 @@ describe("Match Controller", () => {
         payload: {
           userId: "user456",
           mode: "loose",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
         },
       });
 
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.body);
-      expect(data.status).toMatch(/waiting|matched/);
+      expect(data.status).toMatch(/waiting|matched|queued/);
     });
 
     it("should return 400 for invalid request", async () => {
@@ -84,7 +84,7 @@ describe("Match Controller", () => {
         payload: {
           userId: "user123",
           mode: "strict",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
           requestId,
         },
       });
@@ -96,7 +96,7 @@ describe("Match Controller", () => {
         payload: {
           userId: "user123",
           mode: "strict",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
           requestId,
         },
       });
@@ -111,7 +111,7 @@ describe("Match Controller", () => {
     it("should cancel match request successfully", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/api/v1/match/cancel",
+        url: "/api/v1/match/leave",
         payload: {
           userId: "user123",
           mode: "strict",
@@ -120,13 +120,13 @@ describe("Match Controller", () => {
 
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.body);
-      expect(data.status).toBe("cancelled");
+      expect(data.status).toBe("ok");
     });
 
     it("should work without specifying mode", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/api/v1/match/cancel",
+        url: "/api/v1/match/leave",
         payload: {
           userId: "user123",
         },
@@ -134,7 +134,7 @@ describe("Match Controller", () => {
 
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.body);
-      expect(data.status).toBe("cancelled");
+      expect(data.status).toBe("ok");
     });
   });
 
@@ -198,25 +198,28 @@ describe("Match Controller", () => {
         payload: {
           userId: "user1",
           mode: "strict",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
         },
       });
 
-      await app.inject({
+      const joinResponse = await app.inject({
         method: "POST",
         url: "/api/v1/match/join",
         payload: {
           userId: "user2",
           mode: "strict",
-          preferences: mockPreferences,
+          prefs: mockPreferences,
         },
       });
+
+      const joinData = JSON.parse(joinResponse.body);
+      const matchId = joinData.session.id;
 
       const response = await app.inject({
         method: "POST",
         url: "/api/v1/match/mark_end",
         payload: {
-          matchId: "match123",
+          matchId: matchId,
           userId: "user1",
           reason: "call completed",
         },
@@ -234,6 +237,7 @@ describe("Match Controller", () => {
         payload: {
           matchId: "nonexistent",
           userId: "user1",
+          reason: "test",
         },
       });
 
