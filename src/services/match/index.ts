@@ -63,21 +63,48 @@ export async function join(
   throw new Error("unsupported mode");
 }
 
-export async function endSession(sessionId: string, deps?: { redis?: any }) {
+export async function endSession(
+  sessionId: string,
+  userIds: string[],
+  deps?: { redis?: any }
+) {
   if (!deps?.redis) throw new Error("redis required");
 
-  const res = await endMatch(sessionId);
+  // Call the external service to end match (fire & forget or await)
+  await endMatch(sessionId);
 
-  for (const [userId, state] of deps.redis.__internal.userState.entries()) {
-    if (state?.sessionId === sessionId) {
-      await deps.redis.saveUserState(userId, {
-        ...state,
-        sessionId: null,
-      });
+  // Clear state for all involved users
+  for (const uid of userIds) {
+    if (!uid) continue;
+    try {
+      const state = await deps.redis.getUserState(uid);
+      if (state && state.sessionId === sessionId) {
+        // Clear the state or just remove session info?
+        // Based on logic elsewhere, we reset to null or clear session.
+        // Usually we want to clear the 'in match' status.
+        // Let's modify the state to remove session info.
+        /* 
+          If we just want to remove them from being "in call", we can nullify sessionId.
+          But if we want to fully reset, we might set state to null.
+          The previous logic did:
+             await deps.redis.saveUserState(userId, { ...state, sessionId: null });
+          Let's stick to that.
+        */
+        const { sessionId: _, peerId: __, ...rest } = state;
+        // If there's nothing left effectively, maybe null?
+        // But prefs might be needed?
+        // Actually, usually after match end, user goes back to idle.
+        // Let's just remove sessionId and peerId.
+        await deps.redis.saveUserState(uid, {
+          ...rest,
+          sessionId: null,
+          peerId: null,
+        });
+      }
+    } catch (err) {
+      console.warn(`endSession cleanup error for ${uid}:`, err);
     }
   }
-
-  return res;
 }
 
 export async function markMatchEnd(
@@ -95,7 +122,11 @@ export async function markMatchEnd(
     throw new Error("Match not found");
   }
 
-  await endSession(matchId, deps);
+  const peerId = state.peerId;
+  const participants = [userId];
+  if (peerId) participants.push(peerId);
+
+  await endSession(matchId, participants, deps);
   return { success: true };
 }
 

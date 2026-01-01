@@ -7,7 +7,7 @@ import {
   MarkMatchEndSchema,
 } from "../schemas/match.schema";
 import { join, leave, submitFeedback, markMatchEnd } from "../services/match";
-import * as redisMock from "../integrationTests/mocks/redisMock";
+import * as redis from "../clients/redis";
 
 type JoinMatchPayload = z.infer<typeof JoinMatchSchema>;
 type LeaveMatchPayload = z.infer<typeof LeaveMatchSchema>;
@@ -29,7 +29,7 @@ export const joinMatch = async (
 
   try {
     const response = await join(payload.userId, payload.mode, payload.prefs, {
-      redis: redisMock,
+      redis: redis,
     });
     return reply.send(response);
   } catch (error) {
@@ -54,7 +54,7 @@ export const leaveMatch = async (
   const payload: LeaveMatchPayload = result.data;
 
   try {
-    const response = await leave(payload.userId, { redis: redisMock });
+    const response = await leave(payload.userId, { redis: redis });
     return reply.send(response);
   } catch (error) {
     request.log.error(error);
@@ -76,7 +76,7 @@ export const submitMatchFeedback = async (
   }
 
   try {
-    const response = await submitFeedback(result.data, { redis: redisMock });
+    const response = await submitFeedback(result.data, { redis: redis });
     return reply.send(response);
   } catch (error) {
     request.log.error(error);
@@ -101,7 +101,7 @@ export const markMatchAsEnded = async (
 
   try {
     const response = await markMatchEnd(matchId, userId, reason, {
-      redis: redisMock,
+      redis: redis,
     });
     return reply.send(response);
   } catch (error: any) {

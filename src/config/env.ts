@@ -7,6 +7,7 @@ const EnvSchema = z.object({
   NODE_ENV: z.string().default("development"),
   PORT: z.coerce.number().default(4000),
   LOG_LEVEL: z.string().default("info"),
+  REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
 export const env = EnvSchema.parse(process.env);

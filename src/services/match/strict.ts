@@ -107,11 +107,13 @@ export async function strictJoin(
     await redis.saveUserState!(peerId, {
       ...peerState,
       sessionId: session.id,
+      peerId: userId,
     });
 
     await redis.saveUserState!(userId, {
       ...selfState,
       sessionId: session.id,
+      peerId: peerId,
     });
 
     await redis.removeFromWaitingSet!("strict", peerId).catch(() => {});

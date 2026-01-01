@@ -263,11 +263,13 @@ export async function finalizeLooseMatch(
     await redis.saveUserState(peerId, {
       ...peerState,
       sessionId: session.id,
+      peerId: userId,
     });
 
     await redis.saveUserState(userId, {
       ...selfState,
       sessionId: session.id,
+      peerId: peerId,
     });
 
     await redis

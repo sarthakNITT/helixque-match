@@ -1,11 +1,53 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { buildApp } from "../../app";
 import type { FastifyInstance } from "fastify";
+
+// Mock the functionality of the redis client
+vi.mock("../../clients/redis", () => {
+  return {
+    getUserState: vi.fn(),
+    saveUserState: vi.fn(),
+    addToStrictQueue: vi.fn(),
+    atomicPopFromStrictQueue: vi.fn(),
+    removeFromStrictQueue: vi.fn(),
+    addToLooseIndex: vi.fn(),
+    fetchTopNFromIndex: vi.fn(),
+    removeUserFromAllLooseIndexes: vi.fn(),
+    addToWaitingSet: vi.fn(),
+    removeFromWaitingSet: vi.fn(),
+    acquireLock: vi.fn().mockResolvedValue(true),
+    releaseLock: vi.fn().mockResolvedValue(true),
+    getQualityScore: vi.fn().mockResolvedValue(100),
+    default: {
+      on: vi.fn(),
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+      zadd: vi.fn(),
+      zrem: vi.fn(),
+      zrevrange: vi.fn(),
+      sadd: vi.fn(),
+      srem: vi.fn(),
+    },
+  };
+});
+
+import * as redis from "../../clients/redis";
 
 describe("Match Controller", () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+
+    // Default mock implementations for happy path
+    (redis.getUserState as any).mockResolvedValue(null);
+    (redis.saveUserState as any).mockResolvedValue(undefined);
+    (redis.atomicPopFromStrictQueue as any).mockResolvedValue(null); // No peer waiting initially
+    (redis.addToStrictQueue as any).mockResolvedValue(undefined);
+    (redis.addToWaitingSet as any).mockResolvedValue(undefined);
+    (redis.fetchTopNFromIndex as any).mockResolvedValue([]);
+
     app = buildApp();
     await app.ready();
   });
@@ -191,35 +233,17 @@ describe("Match Controller", () => {
 
   describe("POST /api/v1/match/mark_end", () => {
     it("should mark match as ended successfully", async () => {
-      // First create a match by joining
-      await app.inject({
-        method: "POST",
-        url: "/api/v1/match/join",
-        payload: {
-          userId: "user1",
-          mode: "strict",
-          prefs: mockPreferences,
-        },
+      // Mock user state to return a session
+      (redis.getUserState as any).mockResolvedValue({
+        sessionId: "match123",
+        prefs: {},
       });
-
-      const joinResponse = await app.inject({
-        method: "POST",
-        url: "/api/v1/match/join",
-        payload: {
-          userId: "user2",
-          mode: "strict",
-          prefs: mockPreferences,
-        },
-      });
-
-      const joinData = JSON.parse(joinResponse.body);
-      const matchId = joinData.session.id;
 
       const response = await app.inject({
         method: "POST",
         url: "/api/v1/match/mark_end",
         payload: {
-          matchId: matchId,
+          matchId: "match123",
           userId: "user1",
           reason: "call completed",
         },
@@ -231,6 +255,9 @@ describe("Match Controller", () => {
     });
 
     it("should return 404 for non-existent match", async () => {
+      // Mock user state to return no session
+      (redis.getUserState as any).mockResolvedValue(null);
+
       const response = await app.inject({
         method: "POST",
         url: "/api/v1/match/mark_end",
