@@ -39,7 +39,6 @@ describe("WebSocket Routes", () => {
 
       const data = JSON.parse(response.body);
 
-      // Check client message types
       expect(data.client_messages).toContain("join_strict");
       expect(data.client_messages).toContain("join_loose");
       expect(data.client_messages).toContain("cancel");
@@ -49,7 +48,6 @@ describe("WebSocket Routes", () => {
       expect(data.client_messages).toContain("heartbeat");
       expect(data.client_messages).toContain("reconnect");
 
-      // Check server message types
       expect(data.server_messages).toContain("match_found");
       expect(data.server_messages).toContain("waiting");
       expect(data.server_messages).toContain("cancelled");

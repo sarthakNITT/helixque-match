@@ -2,21 +2,17 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import { FastifyInstance } from "fastify";
 import { buildApp } from "../src/app";
 
-// Create the app instance once (outside the handler for better performance)
 let app: FastifyInstance | null = null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Initialize the app only once
     if (!app) {
       app = buildApp();
       await app.ready();
     }
 
-    // Prepare the request URL properly
     const url = req.url || "/";
 
-    // Handle the request using Fastify's inject method
     const response = await app.inject({
       method: (req.method || "GET") as
         | "GET"
@@ -32,7 +28,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       query: req.query || {},
     });
 
-    // Set response headers
     const responseHeaders = response.headers;
     Object.keys(responseHeaders).forEach((key) => {
       const value = responseHeaders[key];
@@ -41,10 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    // Set status code and send response
     res.status(response.statusCode);
 
-    // Handle different response types
     try {
       const parsedPayload = JSON.parse(response.payload);
       res.json(parsedPayload);

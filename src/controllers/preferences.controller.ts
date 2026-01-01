@@ -8,7 +8,6 @@ import {
 type PreferencePayload = z.infer<typeof PreferenceSchema>;
 type EnhancedPreferencePayload = z.infer<typeof EnhancedPreferenceSchema>;
 
-// Mock data store (in production: PostgreSQL)
 const enhancedPreferences: Map<string, Record<string, unknown>> = new Map();
 
 export const listPreferences = async (
@@ -39,7 +38,6 @@ export const createPreference = async (
 
   const payload: PreferencePayload = result.data;
 
-  // Generate ID and store in mock data store
   const preferenceId = `pref_${Date.now()}`;
   const preferenceWithId = {
     id: preferenceId,
@@ -71,7 +69,6 @@ export const createEnhancedPreference = async (
 
   const payload: EnhancedPreferencePayload = result.data;
 
-  // Generate ID and store in mock data store
   const preferenceId = `enhanced_pref_${Date.now()}`;
   const preferenceWithId = {
     id: preferenceId,
@@ -121,7 +118,6 @@ export const updatePreference = async (
     });
   }
 
-  // Determine which schema to use based on existing preference structure
   const isEnhanced = "techStack" in existingPreference;
   const schema = isEnhanced ? EnhancedPreferenceSchema : PreferenceSchema;
 
@@ -169,7 +165,6 @@ export const deletePreference = async (
   });
 };
 
-// Helper function to generate strict preference key
 function generateStrictPrefKey(preferences: EnhancedPreferencePayload): string {
   const keys = [
     `lang=${preferences.language}`,

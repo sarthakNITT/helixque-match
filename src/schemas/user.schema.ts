@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Enums
 export const UserStatus = z.enum([
   "OFFLINE",
   "ONLINE",
@@ -11,7 +10,6 @@ export const UserStatus = z.enum([
 
 export const MatchMode = z.enum(["STRICT", "LOOSE"]);
 
-// User Preferences Schema (10 profile fields)
 export const UserPreferencesSchema = z.object({
   language: z.string().describe("Programming language preference"),
   techStack: z.array(z.string()).describe("Technology stack preferences"),
@@ -25,7 +23,6 @@ export const UserPreferencesSchema = z.object({
   goals: z.array(z.string()).describe("Learning/collaboration goals"),
 });
 
-// User Schema
 export const UserSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
@@ -45,7 +42,6 @@ export const UserSchema = z.object({
   currentMatchId: z.string().optional(),
 });
 
-// Match Schema
 export const MatchSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
@@ -60,7 +56,6 @@ export const MatchSchema = z.object({
   tagsB: z.array(z.string()).optional(),
 });
 
-// Feedback Schema
 export const FeedbackSchema = z.object({
   id: z.string(),
   matchId: z.string(),
@@ -71,7 +66,6 @@ export const FeedbackSchema = z.object({
   createdAt: z.date(),
 });
 
-// Type exports
 export type UserStatus = z.infer<typeof UserStatus>;
 export type MatchMode = z.infer<typeof MatchMode>;
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>;

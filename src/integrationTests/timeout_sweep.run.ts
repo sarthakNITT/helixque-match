@@ -1,4 +1,3 @@
-// tests/run_timeout_sweep.ts
 import * as redis from "./mocks/redisMock";
 import * as prisma from "./mocks/prismaMock";
 import { join, leave } from "../services/match/index";
@@ -10,9 +9,8 @@ async function main() {
   await join("T1", "strict", prefs, { redis });
   console.log("joined T1");
 
-  // simulate time passing
   const state = await redis.getUserState("T1");
-  state.joinedAt -= 10_000; // 10s ago
+  state.joinedAt -= 10_000;
   await redis.saveUserState("T1", state);
 
   await sweepStaleWaiters(5_000, { redis, leave });

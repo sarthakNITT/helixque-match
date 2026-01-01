@@ -1,8 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
-// Schema imports are handled by WebSocket message validation
 
 const websocketRoutes: FastifyPluginAsync = async (app) => {
-  // WebSocket endpoint documentation for Swagger
   app.post(
     "/docs",
     {
@@ -39,7 +37,6 @@ const websocketRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 
-  // WebSocket examples endpoint
   app.get(
     "/examples",
     {
@@ -117,7 +114,6 @@ const websocketRoutes: FastifyPluginAsync = async (app) => {
     }
   );
 
-  // Example WebSocket flow documentation
   app.get(
     "/websocket/examples",
     {

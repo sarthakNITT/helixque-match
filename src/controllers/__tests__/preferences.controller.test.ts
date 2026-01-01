@@ -71,7 +71,6 @@ describe("Preferences Controller", () => {
         url: "/api/v1/preferences",
         payload: {
           domain: "frontend",
-          // Missing experience
         },
       });
 
@@ -149,7 +148,6 @@ describe("Preferences Controller", () => {
 
   describe("GET /api/v1/preferences/:id", () => {
     it("should get preference by id", async () => {
-      // First create a preference
       const createResponse = await app.inject({
         method: "POST",
         url: "/api/v1/preferences",
@@ -159,7 +157,6 @@ describe("Preferences Controller", () => {
       const createdData = JSON.parse(createResponse.body);
       const preferenceId = createdData.data.id;
 
-      // Then get it
       const getResponse = await app.inject({
         method: "GET",
         url: `/api/v1/preferences/${preferenceId}`,
@@ -182,7 +179,6 @@ describe("Preferences Controller", () => {
 
   describe("PUT /api/v1/preferences/:id", () => {
     it("should update preference successfully", async () => {
-      // First create a preference
       const createResponse = await app.inject({
         method: "POST",
         url: "/api/v1/preferences",
@@ -192,7 +188,6 @@ describe("Preferences Controller", () => {
       const createdData = JSON.parse(createResponse.body);
       const preferenceId = createdData.data.id;
 
-      // Then update it
       const updatedPreference = {
         ...validLegacyPreference,
         domain: "backend",
@@ -223,7 +218,6 @@ describe("Preferences Controller", () => {
 
   describe("DELETE /api/v1/preferences/:id", () => {
     it("should delete preference successfully", async () => {
-      // First create a preference
       const createResponse = await app.inject({
         method: "POST",
         url: "/api/v1/preferences",
@@ -233,7 +227,6 @@ describe("Preferences Controller", () => {
       const createdData = JSON.parse(createResponse.body);
       const preferenceId = createdData.data.id;
 
-      // Then delete it
       const deleteResponse = await app.inject({
         method: "DELETE",
         url: `/api/v1/preferences/${preferenceId}`,
@@ -243,7 +236,6 @@ describe("Preferences Controller", () => {
       const data = JSON.parse(deleteResponse.body);
       expect(data.message).toContain("deleted");
 
-      // Verify it's gone
       const getResponse = await app.inject({
         method: "GET",
         url: `/api/v1/preferences/${preferenceId}`,

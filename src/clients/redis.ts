@@ -12,9 +12,6 @@ redis.on("connect", () => {
   log("redis_connect", { url: env.REDIS_URL });
 });
 
-/**
- * Basic User State Management
- */
 export async function getUserState(userId: string): Promise<any | null> {
   const data = await redis.get(`user:${userId}`);
   return data ? JSON.parse(data) : null;
@@ -27,17 +24,10 @@ export async function saveUserState(
   if (stateObj === null) {
     await redis.del(`user:${userId}`);
   } else {
-    // 1 hour expiry for user state to prevent stale data
     await redis.set(`user:${userId}`, JSON.stringify(stateObj), "EX", 3600);
   }
 }
 
-/**
- * Strict Queue (Sorted Set)
- * - Key: strict:queue:<signature>
- * - Score: Quality Score (higher is better)
- * - Member: UserId
- */
 export async function addToStrictQueue(
   signature: string,
   userId: string,
@@ -49,15 +39,12 @@ export async function addToStrictQueue(
 export async function atomicPopFromStrictQueue(
   signature: string
 ): Promise<string | null> {
-  // We want the user with the HIGHEST score.
-  // ZREVRANGEBYSCORE key +inf -inf LIMIT 0 1 -> get top 1
   const result = await redis.zrevrange(`strict:queue:${signature}`, 0, 0);
   if (result.length === 0) return null;
 
   const userId = result[0];
   const removedCount = await redis.zrem(`strict:queue:${signature}`, userId);
 
-  // If zrem returns 0, someone else popped this user in race condition
   if (removedCount === 0) {
     return atomicPopFromStrictQueue(signature);
   }
@@ -86,8 +73,6 @@ export async function addToLooseIndex(
 ): Promise<void> {
   const key = `loose:index:${field.toLowerCase()}:${String(value).toLowerCase()}`;
   await redis.zadd(key, score, userId);
-  // Set expiry on index keys to avoid indefinite growth?
-  // For now we keep them, assuming app logic cleans up via removeUserFromAllLooseIndexes
 }
 
 export async function fetchTopNFromIndex(
@@ -166,7 +151,6 @@ export async function releaseLock(
   token: string
 ): Promise<boolean> {
   const key = `lock:${userId}`;
-  // internal Lua script for atomic unlock check
   const script = `
     if redis.call("get", KEYS[1]) == ARGV[1] then
         return redis.call("del", KEYS[1])
@@ -183,7 +167,6 @@ export async function releaseLock(
  * In real world this might fetch from DB or another Redis key
  */
 export async function getQualityScore(userId: string): Promise<number> {
-  // Placeholder implementation
   return 100;
 }
 

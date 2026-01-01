@@ -37,7 +37,6 @@ describe("Admin Controller", () => {
         url: "/api/v1/admin/ban",
         payload: {
           userId: "user123",
-          // Missing reason
         },
       });
 
@@ -45,7 +44,6 @@ describe("Admin Controller", () => {
     });
 
     it("should require both userId and reason", async () => {
-      // Missing userId
       const response1 = await app.inject({
         method: "POST",
         url: "/api/v1/admin/ban",
@@ -54,7 +52,6 @@ describe("Admin Controller", () => {
         },
       });
 
-      // Missing reason
       const response2 = await app.inject({
         method: "POST",
         url: "/api/v1/admin/ban",

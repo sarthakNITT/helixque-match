@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { UserPreferencesSchema } from "./user.schema";
 
-// Internal API Schemas (signaling ↔ matching service)
-
-// 1. Internal Join Match Request
 export const InternalJoinRequestSchema = z.object({
   userId: z.string(),
   mode: z.enum(["strict", "loose"]),
@@ -11,7 +8,6 @@ export const InternalJoinRequestSchema = z.object({
   requestId: z.string().uuid().optional(),
 });
 
-// 2. Internal Join Match Response
 export const InternalJoinResponseSchema = z.object({
   status: z.enum(["waiting", "matched"]),
   matchId: z.string().optional(),
@@ -19,18 +15,15 @@ export const InternalJoinResponseSchema = z.object({
   prefKey: z.string().optional(),
 });
 
-// 3. Internal Cancel Request
 export const InternalCancelRequestSchema = z.object({
   userId: z.string(),
   mode: z.enum(["strict", "loose"]).optional(),
 });
 
-// 4. Internal Cancel Response
 export const InternalCancelResponseSchema = z.object({
   status: z.literal("cancelled"),
 });
 
-// 5. Internal Feedback Request
 export const InternalFeedbackRequestSchema = z.object({
   matchId: z.string(),
   fromUserId: z.string(),
@@ -39,41 +32,33 @@ export const InternalFeedbackRequestSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-// 6. Internal Mark End Request
 export const InternalMarkEndRequestSchema = z.object({
   matchId: z.string(),
   userId: z.string(),
   reason: z.string().optional(),
 });
 
-// Admin API Schemas
-
-// 1. Ban User Request
 export const BanUserRequestSchema = z.object({
   userId: z.string(),
   reason: z.string(),
 });
 
-// 2. Ban User Response
 export const BanUserResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 });
 
-// 3. Deprioritize User Request
 export const DeprioritizeUserRequestSchema = z.object({
   userId: z.string(),
   reason: z.string().optional(),
   duration: z.number().optional().describe("Duration in minutes"),
 });
 
-// 4. Deprioritize User Response
 export const DeprioritizeUserResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 });
 
-// 5. Queue Debug Response
 export const QueueDebugResponseSchema = z.object({
   queueKey: z.string(),
   length: z.number(),
@@ -91,7 +76,6 @@ export const QueueDebugResponseSchema = z.object({
   }),
 });
 
-// Health Check Response
 export const HealthCheckResponseSchema = z.object({
   status: z.literal("healthy"),
   timestamp: z.date(),
@@ -102,7 +86,6 @@ export const HealthCheckResponseSchema = z.object({
   uptime: z.number(),
 });
 
-// Metrics Response
 export const MetricsResponseSchema = z.object({
   queues: z.object({
     strict_total: z.number(),
@@ -121,14 +104,12 @@ export const MetricsResponseSchema = z.object({
   }),
 });
 
-// Generic Success Response
 export const SuccessResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   data: z.any().optional(),
 });
 
-// Generic Error Response
 export const ErrorResponseSchema = z.object({
   success: z.boolean().default(false),
   error: z.object({
@@ -138,7 +119,6 @@ export const ErrorResponseSchema = z.object({
   }),
 });
 
-// Type exports
 export type InternalJoinRequest = z.infer<typeof InternalJoinRequestSchema>;
 export type InternalJoinResponse = z.infer<typeof InternalJoinResponseSchema>;
 export type InternalCancelRequest = z.infer<typeof InternalCancelRequestSchema>;

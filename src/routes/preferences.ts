@@ -7,10 +7,8 @@ import {
   updatePreference,
   deletePreference,
 } from "../controllers/preferences.controller";
-// Schema imports are handled by Fastify JSON Schema validation
 
 const preferencesRoutes: FastifyPluginAsync = async (app) => {
-  // Legacy preference endpoints
   app.get(
     "/",
     {
@@ -229,7 +227,6 @@ const preferencesRoutes: FastifyPluginAsync = async (app) => {
     deletePreference
   );
 
-  // Enhanced preference endpoints for matching system
   app.post(
     "/enhanced",
     {

@@ -5,7 +5,6 @@ import websocketRoutes from "./websocket";
 import { adminRoutes, debugRoutes } from "./admin";
 
 const routes: FastifyPluginAsync = async (app) => {
-  // Original preferences route
   app.register(preferencesRoutes, { prefix: "/preferences" });
   app.register(matchRoutes, { prefix: "/match" });
   app.register(websocketRoutes, { prefix: "/ws" });

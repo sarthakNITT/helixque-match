@@ -133,16 +133,13 @@ describe("System Controller", () => {
       expect(response.statusCode).toBe(200);
       const data = JSON.parse(response.body);
 
-      // Queue counts should be non-negative
       expect(data.queues.strict_total).toBeGreaterThanOrEqual(0);
       expect(data.queues.loose_total).toBeGreaterThanOrEqual(0);
 
-      // Match counts should be non-negative
       expect(data.matches.total_active).toBeGreaterThanOrEqual(0);
       expect(data.matches.completed_today).toBeGreaterThanOrEqual(0);
       expect(data.matches.average_wait_time).toBeGreaterThanOrEqual(0);
 
-      // System metrics should be positive
       expect(data.system.memory_usage).toBeGreaterThan(0);
       expect(data.system.cpu_usage).toBeGreaterThanOrEqual(0);
       expect(data.system.cpu_usage).toBeLessThanOrEqual(100);

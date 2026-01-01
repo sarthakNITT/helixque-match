@@ -4,10 +4,8 @@ import {
   deprioritizeUser,
   getQueueInfo,
 } from "../controllers/admin.controller";
-// Schema imports are handled by Fastify JSON Schema validation
 
 const adminRoutes: FastifyPluginAsync = async (app) => {
-  // POST /admin/ban - Ban a user immediately
   app.post(
     "/ban",
     {
@@ -27,7 +25,6 @@ const adminRoutes: FastifyPluginAsync = async (app) => {
     banUser
   );
 
-  // POST /admin/deprioritize - Temporarily lower user priority
   app.post(
     "/deprioritize",
     {
@@ -50,7 +47,6 @@ const adminRoutes: FastifyPluginAsync = async (app) => {
 };
 
 const debugRoutes: FastifyPluginAsync = async (app) => {
-  // GET /debug/queue/:key - Get queue information for debugging
   app.get(
     "/queue/:key",
     {

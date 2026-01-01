@@ -5,7 +5,6 @@ import {
   ErrorResponse,
 } from "../schemas/api.schema";
 
-// Mock data stores (in production, these would be Redis/PostgreSQL)
 const startTime = Date.now();
 
 /**
@@ -17,9 +16,8 @@ export const healthCheck = async (
   reply: FastifyReply
 ) => {
   try {
-    // Mock service health checks
-    const redisHealthy = true; // In production: await redis.ping()
-    const postgresHealthy = true; // In production: await db.raw('SELECT 1')
+    const redisHealthy = true;
+    const postgresHealthy = true;
 
     if (!redisHealthy || !postgresHealthy) {
       return reply.status(503).send({
@@ -64,10 +62,9 @@ export const getMetrics = async (
   reply: FastifyReply
 ) => {
   try {
-    // Mock metrics data (in production, get from actual data stores)
     const queueData = {
-      strict_total: 5, // Mock data
-      loose_total: 12, // Mock data
+      strict_total: 5,
+      loose_total: 12,
       by_language: {
         javascript: 8,
         python: 4,
@@ -76,19 +73,19 @@ export const getMetrics = async (
       },
     };
 
-    const activeMatchCount = 3; // Mock data
-    const completedTodayCount = 15; // Mock data
+    const activeMatchCount = 3;
+    const completedTodayCount = 15;
 
     const response: MetricsResponse = {
       queues: queueData,
       matches: {
         total_active: activeMatchCount,
         completed_today: completedTodayCount,
-        average_wait_time: 45.5, // Mock average wait time in seconds
+        average_wait_time: 45.5,
       },
       system: {
-        memory_usage: process.memoryUsage().heapUsed / 1024 / 1024, // MB
-        cpu_usage: Math.random() * 100, // Mock CPU usage percentage
+        memory_usage: process.memoryUsage().heapUsed / 1024 / 1024,
+        cpu_usage: Math.random() * 100,
         connections:
           queueData.strict_total + queueData.loose_total + activeMatchCount,
       },
@@ -107,8 +104,6 @@ export const getMetrics = async (
   }
 };
 
-// Helper function to calculate average wait time (mock implementation)
 function _calculateAverageWaitTime(): number {
-  // In production, this would calculate from actual queue data
-  return 45.5; // Mock average wait time in seconds
+  return 45.5;
 }

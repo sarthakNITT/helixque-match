@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { UserPreferencesSchema, MatchMode } from "./user.schema";
 
-// Base WebSocket Message Schema
 export const BaseWSMessageSchema = z.object({
   type: z.string(),
   requestId: z
@@ -12,9 +11,6 @@ export const BaseWSMessageSchema = z.object({
   payload: z.record(z.string(), z.any()),
 });
 
-// WebSocket Message Types (Client -> Server)
-
-// 1. Join Strict Mode
 export const JoinStrictMessageSchema = z.object({
   type: z.literal("join_strict"),
   requestId: z.string().uuid().optional(),
@@ -24,7 +20,6 @@ export const JoinStrictMessageSchema = z.object({
   }),
 });
 
-// 2. Join Loose Mode
 export const JoinLooseMessageSchema = z.object({
   type: z.literal("join_loose"),
   requestId: z.string().uuid().optional(),
@@ -34,7 +29,6 @@ export const JoinLooseMessageSchema = z.object({
   }),
 });
 
-// 3. Cancel Matching
 export const CancelMessageSchema = z.object({
   type: z.literal("cancel"),
   requestId: z.string().uuid().optional(),
@@ -44,7 +38,6 @@ export const CancelMessageSchema = z.object({
   }),
 });
 
-// 4. WebRTC Signaling
 export const SignalMessageSchema = z.object({
   type: z.literal("signal"),
   requestId: z.string().uuid().optional(),
@@ -55,7 +48,6 @@ export const SignalMessageSchema = z.object({
   }),
 });
 
-// 5. Call End
 export const CallEndMessageSchema = z.object({
   type: z.literal("call_end"),
   requestId: z.string().uuid().optional(),
@@ -66,7 +58,6 @@ export const CallEndMessageSchema = z.object({
   }),
 });
 
-// 6. Feedback
 export const FeedbackMessageSchema = z.object({
   type: z.literal("feedback"),
   requestId: z.string().uuid().optional(),
@@ -79,7 +70,6 @@ export const FeedbackMessageSchema = z.object({
   }),
 });
 
-// 7. Heartbeat
 export const HeartbeatMessageSchema = z.object({
   type: z.literal("heartbeat"),
   requestId: z.string().uuid().optional(),
@@ -88,7 +78,6 @@ export const HeartbeatMessageSchema = z.object({
   }),
 });
 
-// 8. Reconnect
 export const ReconnectMessageSchema = z.object({
   type: z.literal("reconnect"),
   requestId: z.string().uuid().optional(),
@@ -98,9 +87,6 @@ export const ReconnectMessageSchema = z.object({
   }),
 });
 
-// WebSocket Message Types (Server -> Client)
-
-// 1. Match Found
 export const MatchFoundMessageSchema = z.object({
   type: z.literal("match_found"),
   requestId: z.string().uuid().optional(),
@@ -115,7 +101,6 @@ export const MatchFoundMessageSchema = z.object({
   }),
 });
 
-// 2. Waiting Response
 export const WaitingMessageSchema = z.object({
   type: z.literal("waiting"),
   requestId: z.string().uuid().optional(),
@@ -125,7 +110,6 @@ export const WaitingMessageSchema = z.object({
   }),
 });
 
-// 3. Cancelled Response
 export const CancelledMessageSchema = z.object({
   type: z.literal("cancelled"),
   requestId: z.string().uuid().optional(),
@@ -134,7 +118,6 @@ export const CancelledMessageSchema = z.object({
   }),
 });
 
-// 4. Error Response
 export const ErrorMessageSchema = z.object({
   type: z.literal("error"),
   requestId: z.string().uuid().optional(),
@@ -145,7 +128,6 @@ export const ErrorMessageSchema = z.object({
   }),
 });
 
-// 5. Feedback Received
 export const FeedbackReceivedMessageSchema = z.object({
   type: z.literal("feedback_received"),
   requestId: z.string().uuid().optional(),
@@ -154,7 +136,6 @@ export const FeedbackReceivedMessageSchema = z.object({
   }),
 });
 
-// 6. Pong Response
 export const PongMessageSchema = z.object({
   type: z.literal("pong"),
   requestId: z.string().uuid().optional(),
@@ -163,7 +144,6 @@ export const PongMessageSchema = z.object({
   }),
 });
 
-// Union types for validation
 export const ClientWSMessageSchema = z.discriminatedUnion("type", [
   JoinStrictMessageSchema,
   JoinLooseMessageSchema,
@@ -184,7 +164,6 @@ export const ServerWSMessageSchema = z.discriminatedUnion("type", [
   PongMessageSchema,
 ]);
 
-// Type exports
 export type BaseWSMessage = z.infer<typeof BaseWSMessageSchema>;
 export type JoinStrictMessage = z.infer<typeof JoinStrictMessageSchema>;
 export type JoinLooseMessage = z.infer<typeof JoinLooseMessageSchema>;

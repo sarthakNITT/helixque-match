@@ -1,9 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { healthCheck, getMetrics } from "../controllers/system.controller";
-// Schema imports are handled by Fastify JSON Schema validation
 
 const systemRoutes: FastifyPluginAsync = async (app) => {
-  // GET /health - Health check endpoint (alternative)
   app.get(
     "/health",
     {
@@ -16,7 +14,6 @@ const systemRoutes: FastifyPluginAsync = async (app) => {
     healthCheck
   );
 
-  // GET /healthz - Health check endpoint
   app.get(
     "/healthz",
     {
@@ -29,7 +26,6 @@ const systemRoutes: FastifyPluginAsync = async (app) => {
     healthCheck
   );
 
-  // GET /metrics - Prometheus metrics endpoint
   app.get(
     "/metrics",
     {

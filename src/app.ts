@@ -9,7 +9,7 @@ export const buildApp = (): FastifyInstance => {
 
   app.register(corsPlugin);
   app.register(swaggerPlugin);
-  app.register(systemRoutes); // Register system routes at root level
+  app.register(systemRoutes);
   app.register(routes, { prefix: "/api/v1" });
 
   return app;

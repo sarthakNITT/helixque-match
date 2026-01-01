@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { buildApp } from "../../app";
 import type { FastifyInstance } from "fastify";
 
-// Mock the functionality of the redis client
 vi.mock("../../clients/redis", () => {
   return {
     getUserState: vi.fn(),
@@ -40,10 +39,9 @@ describe("Match Controller", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Default mock implementations for happy path
     (redis.getUserState as any).mockResolvedValue(null);
     (redis.saveUserState as any).mockResolvedValue(undefined);
-    (redis.atomicPopFromStrictQueue as any).mockResolvedValue(null); // No peer waiting initially
+    (redis.atomicPopFromStrictQueue as any).mockResolvedValue(null);
     (redis.addToStrictQueue as any).mockResolvedValue(undefined);
     (redis.addToWaitingSet as any).mockResolvedValue(undefined);
     (redis.fetchTopNFromIndex as any).mockResolvedValue([]);
@@ -109,7 +107,6 @@ describe("Match Controller", () => {
         url: "/api/v1/match/join",
         payload: {
           userId: "user123",
-          // Missing required fields
         },
       });
 
@@ -119,7 +116,6 @@ describe("Match Controller", () => {
     it("should handle idempotency with requestId", async () => {
       const requestId = "550e8400-e29b-41d4-a716-446655440000";
 
-      // First request
       const response1 = await app.inject({
         method: "POST",
         url: "/api/v1/match/join",
@@ -131,7 +127,6 @@ describe("Match Controller", () => {
         },
       });
 
-      // Second request with same requestId
       const response2 = await app.inject({
         method: "POST",
         url: "/api/v1/match/join",
@@ -223,7 +218,7 @@ describe("Match Controller", () => {
           matchId: "match123",
           fromUserId: "user1",
           toUserId: "user2",
-          rating: 0, // Invalid rating
+          rating: 0,
         },
       });
 
@@ -233,7 +228,6 @@ describe("Match Controller", () => {
 
   describe("POST /api/v1/match/mark_end", () => {
     it("should mark match as ended successfully", async () => {
-      // Mock user state to return a session
       (redis.getUserState as any).mockResolvedValue({
         sessionId: "match123",
         prefs: {},
@@ -255,7 +249,6 @@ describe("Match Controller", () => {
     });
 
     it("should return 404 for non-existent match", async () => {
-      // Mock user state to return no session
       (redis.getUserState as any).mockResolvedValue(null);
 
       const response = await app.inject({

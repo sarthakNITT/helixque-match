@@ -7,17 +7,12 @@ import {
   ErrorResponse,
 } from "../schemas/api.schema";
 
-// Mock data stores (in production, these would be Redis/PostgreSQL)
 const bannedUsers: Set<string> = new Set();
 const deprioritizedUsers: Map<string, { until: Date; reason: string }> =
   new Map();
 const queues: Map<string, Array<Record<string, unknown>>> = new Map();
 const _matches: Map<string, Record<string, unknown>> = new Map();
 
-/**
- * Admin endpoint: Ban a user
- * POST /admin/ban
- */
 export const banUser = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const result = BanUserRequestSchema.safeParse(request.body);
@@ -34,10 +29,8 @@ export const banUser = async (request: FastifyRequest, reply: FastifyReply) => {
 
     const { userId, reason } = result.data;
 
-    // Mock: Add user to banned list
     bannedUsers.add(userId);
 
-    // Remove from queues if present
     const _user = {
       id: userId,
       banned: true,
@@ -45,7 +38,6 @@ export const banUser = async (request: FastifyRequest, reply: FastifyReply) => {
       banReason: reason,
     };
 
-    // Remove from all queues
     for (const [queueKey, queue] of queues) {
       const filteredQueue = queue.filter(
         (item: Record<string, unknown>) => item.userId !== userId
@@ -71,10 +63,6 @@ export const banUser = async (request: FastifyRequest, reply: FastifyReply) => {
   }
 };
 
-/**
- * Admin endpoint: Deprioritize a user
- * POST /admin/deprioritize
- */
 export const deprioritizeUser = async (
   request: FastifyRequest,
   reply: FastifyReply
@@ -98,7 +86,6 @@ export const deprioritizeUser = async (
       duration = 60,
     } = result.data;
 
-    // Store deprioritization info
     const deprioritizeUntil = new Date(Date.now() + duration * 60 * 1000);
     deprioritizedUsers.set(userId, { until: deprioritizeUntil, reason });
 
