@@ -2,6 +2,7 @@ import { strictJoin } from "./strict";
 import { looseJoin } from "./loose";
 import { endMatch } from "../../clients/userDataClient";
 import { updateUserStatus } from "../../clients/userStatusClient";
+import { sendFeedbackToUserDataService } from "../../clients/feedbackClient";
 
 export async function leave(
   userId: string,
@@ -127,5 +128,8 @@ export async function submitFeedback(
   payload: any,
   deps?: { redis?: any }
 ): Promise<{ success: true; message: string }> {
+  // Forward feedback to User Data Server (persist & score)
+  await sendFeedbackToUserDataService(payload);
+
   return { success: true, message: "Feedback submitted successfully" };
 }
