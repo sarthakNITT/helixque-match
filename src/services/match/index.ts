@@ -28,14 +28,14 @@ export async function leave(
   const prefs = state.prefs ?? {};
 
   if (signature) {
-    await redis.removeFromStrictQueue!(signature, userId).catch(() => { });
+    await redis.removeFromStrictQueue!(signature, userId).catch(() => {});
   }
 
-  await redis.removeUserFromAllLooseIndexes!(userId, prefs).catch(() => { });
-  await redis.removeFromWaitingSet!("strict", userId).catch(() => { });
-  await redis.removeFromWaitingSet!("loose", userId).catch(() => { });
+  await redis.removeUserFromAllLooseIndexes!(userId, prefs).catch(() => {});
+  await redis.removeFromWaitingSet!("strict", userId).catch(() => {});
+  await redis.removeFromWaitingSet!("loose", userId).catch(() => {});
 
-  await redis.saveUserState!(userId, null).catch(() => { });
+  await redis.saveUserState!(userId, null).catch(() => {});
 
   await updateUserStatus(userId, "ONLINE");
 
