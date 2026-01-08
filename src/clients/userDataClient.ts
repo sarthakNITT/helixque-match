@@ -30,3 +30,27 @@ export async function endMatch(matchId: string) {
     console.warn(`[Mock] Failed to end match ${matchId}:`, err);
   }
 }
+
+export async function fetchUserRating(userId: string): Promise<number> {
+  try {
+    const res = await fetch(`${BASE}/users/${userId}`, { method: "GET" });
+    if (!res.ok) {
+      if (res.status === 404) return 0;
+      throw new Error("fetchUserRating failed");
+    }
+    const user = await res.json();
+    const rating = user.averageRating ?? 0;
+    const count = user.numFeedbacks ?? 0;
+
+    if (count < 3) {
+      return 4.0;
+    }
+    return rating;
+  } catch (err) {
+    console.warn(
+      `[Mock] Failed to fetch rating for ${userId}, defaulting to 0:`,
+      err
+    );
+    return 0;
+  }
+}

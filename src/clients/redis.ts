@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import { env } from "../config/env";
 import { log } from "../utils/logger";
+import { fetchUserRating } from "./userDataClient";
 
 const redis = new Redis(env.REDIS_URL);
 
@@ -167,7 +168,8 @@ export async function releaseLock(
  * In real world this might fetch from DB or another Redis key
  */
 export async function getQualityScore(userId: string): Promise<number> {
-  return 100;
+  const rating = await fetchUserRating(userId);
+  return Math.round(rating * 20);
 }
 
 export default redis;
