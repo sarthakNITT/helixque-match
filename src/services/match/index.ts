@@ -1,6 +1,7 @@
 import { strictJoin } from "./strict";
 import { looseJoin } from "./loose";
 import { endMatch } from "../../clients/userDataClient";
+import { updateUserStatus } from "../../clients/userStatusClient";
 
 export async function leave(
   userId: string,
@@ -34,6 +35,9 @@ export async function leave(
   await redis.removeFromWaitingSet!("loose", userId).catch(() => {});
 
   await redis.saveUserState!(userId, null).catch(() => {});
+
+  // Fix: Sync status with User Data Server
+  await updateUserStatus(userId, "ONLINE");
 
   return { status: "ok" };
 }
