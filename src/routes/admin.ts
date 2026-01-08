@@ -19,6 +19,12 @@ const adminRoutes: FastifyPluginAsync = async (app) => {
             reason: { type: "string" },
           },
           required: ["userId", "reason"],
+          examples: [
+            {
+              userId: "user_789",
+              reason: "Spamming in match",
+            },
+          ],
         },
       },
     },
@@ -39,6 +45,13 @@ const adminRoutes: FastifyPluginAsync = async (app) => {
             duration: { type: "number", description: "Duration in minutes" },
           },
           required: ["userId"],
+          examples: [
+            {
+              userId: "user_456",
+              reason: "Suspected bot",
+              duration: 60,
+            },
+          ],
         },
       },
     },
