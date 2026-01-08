@@ -28,16 +28,15 @@ export async function leave(
   const prefs = state.prefs ?? {};
 
   if (signature) {
-    await redis.removeFromStrictQueue!(signature, userId).catch(() => {});
+    await redis.removeFromStrictQueue!(signature, userId).catch(() => { });
   }
 
-  await redis.removeUserFromAllLooseIndexes!(userId, prefs).catch(() => {});
-  await redis.removeFromWaitingSet!("strict", userId).catch(() => {});
-  await redis.removeFromWaitingSet!("loose", userId).catch(() => {});
+  await redis.removeUserFromAllLooseIndexes!(userId, prefs).catch(() => { });
+  await redis.removeFromWaitingSet!("strict", userId).catch(() => { });
+  await redis.removeFromWaitingSet!("loose", userId).catch(() => { });
 
-  await redis.saveUserState!(userId, null).catch(() => {});
+  await redis.saveUserState!(userId, null).catch(() => { });
 
-  // Fix: Sync status with User Data Server
   await updateUserStatus(userId, "ONLINE");
 
   return { status: "ok" };
@@ -128,7 +127,6 @@ export async function submitFeedback(
   payload: any,
   deps?: { redis?: any }
 ): Promise<{ success: true; message: string }> {
-  // Forward feedback to User Data Server (persist & score)
   await sendFeedbackToUserDataService(payload);
 
   return { success: true, message: "Feedback submitted successfully" };
